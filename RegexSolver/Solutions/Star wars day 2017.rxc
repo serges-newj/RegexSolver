@@ -1,0 +1,47 @@
+8 11
+(?=.*Y).['_].*[Mon].*[MoTHma ]{3}.
+(?!.*L)(?!.*(.).*\1).*.*[LEIA]
+[Millenium ][Falcon]+[ENDOR]{2}[CHEWBACCA].*
+(?=..+(\w).+\1)[^M]{1,5}[Boba FEtt]+
+[XWING]+[HOTH]+(.)[YODA]+[CORUSCANT]';\1
+(?!.*([^ ]).*\1).*
+..(?!.*([^{.}^]).*\1)[\W\d]*
+(\W)\1.([^{}^])(.).(.)\2\3.\4
+(?!.*([^{.}^]).*\1)[1977\W]*
+([^}{^])(.).(.)\1\2[^9]\3\(.*\)?\1.
+\???. .*
+(.)+(?![^/]).+\1{4,}
+(?!.*([^/]).*\1)[ ^LUKe /VS/ \daRTH VadeR$]*
+(?!(?!.*[taRkin]))\S(.)\$+1/*.*\1.
+(?=.*[SLAVE-I])(.)(.)\2.*\1
+(.)+.*\1\1+.
+(?=.*\;)^\$.[WEDgE].*
+.*?[lowercase S].
+(?=.*\)).[tIE FIghtER]{3}.*
+.*?[lowercase U]
+[_=]([TATOOIne])+/1.*
+.*?[lowercase N]
+[$'][SARLACC].*[PIT]
+.*?[lowercase P]
+[^Y][C3P0]\s[.{].*;[/$][BERU&OWEN]
+.*?[lowercase R]
+[LAndo][bESPIN][Yavin][R2D2][^^.}] .*
+.*U[lowercase I]
+.[Obi Wan]+[^{DAGOBAH.^].*[^ \D] [ALDERAAN]{2,4}
+.*?[lowercase N]
+[Jabba The HUtT]+\./*[^^.{].*(.)\1
+.*?[lowercase T]
+\w[BIGGS].[^.].*[DeatH STar].
+.*?[lowercase E]
+[HAN].*[S0L0].*
+.*?[lowercase D]
+[PalpatinE](.)\1.\++?.*
+(.)+.*\1+.
+$'__=$'MonAndoMona THMoTHma HANEIA
+Milenum FTAOIneSRLACC3P0bESPINObi WanJab TheHUt.BIGSBoba FEt
+XWINGtIE FIghR Yavin;
+tIE FIghR.R2D2
+.
+;
+eae S////$U/////
+lowercase Ulowercase NPRlowercase Ilowercase Nlowercase Tlowercase Elowercase D
