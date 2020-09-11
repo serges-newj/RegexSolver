@@ -297,6 +297,12 @@ namespace RegexSolver
             OnPropertyChanged(Properties.Background);
         }
 
+        public void RemoveRepeatedChars()
+        {
+            if (string.Concat(text.Distinct()).Length < text.Length)
+                VisibleText = string.Concat(text.Distinct());
+        }
+
         public Brush Background
         {
             get

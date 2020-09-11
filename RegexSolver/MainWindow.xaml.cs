@@ -144,6 +144,16 @@ namespace RegexSolver
             }
         }
 
+        private void Cell_LostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+        {
+            TextBox tb = sender as TextBox;
+            if (tb.DataContext is RegexPuzzleRectCellVM)
+            {
+                RegexPuzzleRectCellVM cellVM = tb.DataContext as RegexPuzzleRectCellVM;
+                cellVM.RemoveRepeatedChars();
+            }
+        }
+
         private void Pattern_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             TextBox tb = sender as TextBox;

@@ -87,7 +87,8 @@
         </DataTemplate>
         <DataTemplate DataType="{x:Type local:RegexPuzzleRectCellVM}">
             <TextBox Style="{StaticResource CellStyle}" Text="{Binding VisibleText, UpdateSourceTrigger=PropertyChanged}" FontSize="{Binding FontSize}"
-                     Background="{Binding Background}" BorderBrush="{Binding BorderBrush}" ToolTip="{Binding WrongChars}" MouseDoubleClick="Cell_MouseDoubleClick"/>
+                     Background="{Binding Background}" BorderBrush="{Binding BorderBrush}" ToolTip="{Binding WrongChars}"
+                     MouseDoubleClick="Cell_MouseDoubleClick" LostKeyboardFocus="Cell_LostKeyboardFocus"/>
         </DataTemplate>
     </Window.Resources>
     <Grid>
