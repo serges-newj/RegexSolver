@@ -27,7 +27,7 @@ namespace RegexSolver
         }
     }
 
-    internal class RegexPuzzleRectRegexVM : RegexPuzzleRectItemVM
+    internal class RegexPuzzleRectPatternVM : RegexPuzzleRectItemVM
     {
         internal static class Properties
         {
@@ -35,8 +35,35 @@ namespace RegexSolver
             public const string Foreground = "Foreground";
         }
 
-        public RegexPuzzleRectRegexVM(RegexPuzzleRectVM viewModel, int row, int col) : base(viewModel, row, col)
+        public RegexPuzzleRectPatternVM(RegexPuzzleRectVM viewModel, int row, int col) : base(viewModel, row, col)
         {
+        }
+
+        private Pattern pattern
+        {
+            get
+            {
+                if (col == 0)
+                    return model.RPattern[row - 1, 0];
+                else if (col == model.Cols + 1)
+                    return model.RPattern[row - 1, 1];
+                else if (row == 0)
+                    return model.CPattern[col - 1, 0];
+                else if (row == model.Rows + 1)
+                    return model.CPattern[col - 1, 1];
+                return null;
+            }
+            set
+            {
+                if (col == 0)
+                    model.RPattern[row - 1, 0] = value;
+                else if (col == model.Cols + 1)
+                    model.RPattern[row - 1, 1] = value;
+                else if (row == 0)
+                    model.CPattern[col - 1, 0] = value;
+                else if (row == model.Rows + 1)
+                    model.CPattern[col - 1, 1] = value;
+            }
         }
 
         public void OnCellChanged(int row, int column)
@@ -58,10 +85,23 @@ namespace RegexSolver
             }
         }
 
+        private bool isDisabled = false;
+        public bool IsDisabled
+        {
+            get => isDisabled;
+            set
+            {
+                isDisabled = value;
+                OnPropertyChanged(Properties.Background);
+            }
+        }
+
         public Brush Background
         {
             get
             {
+                if (isDisabled)
+                    return Brushes.LightGray;
                 if (!String.IsNullOrEmpty(Text))
                 {
                     switch (checkRegexMatch())
@@ -184,33 +224,6 @@ namespace RegexSolver
                     }
                 }
                 return match;
-            }
-        }
-
-        private Pattern pattern
-        {
-            get
-            {
-                if (col == 0)
-                    return model.RPattern[row - 1, 0];
-                else if (col == model.Cols + 1)
-                    return model.RPattern[row - 1, 1];
-                else if (row == 0)
-                    return model.CPattern[col - 1, 0];
-                else if (row == model.Rows + 1)
-                    return model.CPattern[col - 1, 1];
-                return null;
-            }
-            set
-            {
-                if (col == 0)
-                    model.RPattern[row - 1, 0] = value;
-                else if (col == model.Cols + 1)
-                    model.RPattern[row - 1, 1] = value;
-                else if (row == 0)
-                    model.CPattern[col - 1, 0] = value;
-                else if (row == model.Rows + 1)
-                    model.CPattern[col - 1, 1] = value;
             }
         }
     }

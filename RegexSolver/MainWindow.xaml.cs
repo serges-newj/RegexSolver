@@ -82,12 +82,12 @@ namespace RegexSolver
             {
                 Crossword.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(40) });
 
-                cp = new ContentPresenter() { Content = new RegexPuzzleRectRegexVM(vm, row, 0) };
+                cp = new ContentPresenter() { Content = new RegexPuzzleRectPatternVM(vm, row, 0) };
                 cp.SetValue(Grid.RowProperty, row);
                 cp.SetValue(Grid.ColumnProperty, 0);
                 Crossword.Children.Add(cp);
 
-                cp = new ContentPresenter() { Content = new RegexPuzzleRectRegexVM(vm, row, vm.Puzzle.Cols + 1) };
+                cp = new ContentPresenter() { Content = new RegexPuzzleRectPatternVM(vm, row, vm.Puzzle.Cols + 1) };
                 cp.SetValue(Grid.RowProperty, row);
                 cp.SetValue(Grid.ColumnProperty, vm.Puzzle.Cols + 1);
                 Crossword.Children.Add(cp);
@@ -99,12 +99,12 @@ namespace RegexSolver
             {
                 Crossword.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(40) });
 
-                cp = new ContentPresenter() { Content = new RegexPuzzleRectRegexVM(vm, 0, col) };
+                cp = new ContentPresenter() { Content = new RegexPuzzleRectPatternVM(vm, 0, col) };
                 cp.SetValue(Grid.RowProperty, 0);
                 cp.SetValue(Grid.ColumnProperty, col);
                 Crossword.Children.Add(cp);
 
-                cp = new ContentPresenter() { Content = new RegexPuzzleRectRegexVM(vm, vm.Puzzle.Rows + 1, col) };
+                cp = new ContentPresenter() { Content = new RegexPuzzleRectPatternVM(vm, vm.Puzzle.Rows + 1, col) };
                 cp.SetValue(Grid.RowProperty, vm.Puzzle.Rows + 1);
                 cp.SetValue(Grid.ColumnProperty, col);
                 Crossword.Children.Add(cp);
@@ -134,13 +134,23 @@ namespace RegexSolver
             }
         }
 
-        private void TextBox_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        private void Cell_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             TextBox tb = sender as TextBox;
             if (tb.DataContext is RegexPuzzleRectCellVM)
             {
                 RegexPuzzleRectCellVM cellVM = tb.DataContext as RegexPuzzleRectCellVM;
                 cellVM.IsTemp = !cellVM.IsTemp;
+            }
+        }
+
+        private void Pattern_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            TextBox tb = sender as TextBox;
+            if (tb.DataContext is RegexPuzzleRectPatternVM)
+            {
+                RegexPuzzleRectPatternVM patternVM = tb.DataContext as RegexPuzzleRectPatternVM;
+                patternVM.IsDisabled = !patternVM.IsDisabled;
             }
         }
     }

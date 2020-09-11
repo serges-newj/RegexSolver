@@ -68,8 +68,8 @@
             </Setter>
         </Style>
 
-        <DataTemplate DataType="{x:Type local:RegexPuzzleRectRegexVM}">
-            <TextBox x:Name="tb" Text="{Binding Text}" Background="{Binding Background}" Foreground="{Binding Foreground}"/>
+        <DataTemplate DataType="{x:Type local:RegexPuzzleRectPatternVM}">
+            <TextBox x:Name="tb" Text="{Binding Text}" Background="{Binding Background}" Foreground="{Binding Foreground}" MouseDoubleClick="Pattern_MouseDoubleClick"/>
             <DataTemplate.Triggers>
                 <DataTrigger Binding="{Binding Side}" Value="Left">
                     <Setter TargetName="tb" Property="Style" Value="{StaticResource RegexLeftStyle}"/>
@@ -87,7 +87,7 @@
         </DataTemplate>
         <DataTemplate DataType="{x:Type local:RegexPuzzleRectCellVM}">
             <TextBox Style="{StaticResource CellStyle}" Text="{Binding VisibleText, UpdateSourceTrigger=PropertyChanged}" FontSize="{Binding FontSize}"
-                     Background="{Binding Background}" BorderBrush="{Binding BorderBrush}" ToolTip="{Binding WrongChars}" MouseDoubleClick="TextBox_MouseDoubleClick"/>
+                     Background="{Binding Background}" BorderBrush="{Binding BorderBrush}" ToolTip="{Binding WrongChars}" MouseDoubleClick="Cell_MouseDoubleClick"/>
         </DataTemplate>
     </Window.Resources>
     <Grid>
@@ -144,7 +144,7 @@
             </Grid.ColumnDefinitions>
             <TextBox Grid.Row="1" Grid.Column="0" Style="{StaticResource RegexLeftStyle}" Text="[P-{][^\x5a-\x7e][%-_]" Background="LightGreen"/>
             <TextBox Grid.Row="1" Grid.Column="3" Style="{StaticResource RegexRightStyle}" Text="[ -`][X-\\][^\44-\127]" Background="Pink"/>
-            <TextBox Grid.Row="0" Grid.Column="1" Style="{StaticResource RegexTopStyle}" Text="[^\x5b-\x61]"/>
+            <TextBox Grid.Row="0" Grid.Column="1" Style="{StaticResource RegexTopStyle}" Text="[^\x5b-\x61]" Background="LightGray"/>
             <TextBox Grid.Row="2" Grid.Column="1" Style="{StaticResource RegexBottomStyle}" Text="[^\40-\131]"/>
             <TextBox Grid.Row="1" Grid.Column="1" Style="{StaticResource CellStyle}" Text="MWA\s" FontSize="12" Background="MistyRose"/>
         </Grid>

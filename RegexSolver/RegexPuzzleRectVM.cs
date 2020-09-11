@@ -159,7 +159,7 @@ namespace RegexSolver
 
         public void OnCellChanged(int row, int column)
         {
-            foreach (var item in items.OfType<RegexPuzzleRectRegexVM>())
+            foreach (var item in items.OfType<RegexPuzzleRectPatternVM>())
                 item.OnCellChanged(row, column);
         }
 
