@@ -29,10 +29,23 @@ namespace RegexSolver
 
     internal class RegexPuzzleRectPatternVM : RegexPuzzleRectItemVM
     {
+        internal enum RegexMatchResult
+        {
+            Unknown,
+            NoRegex,
+            Disabled,
+            Processing,
+            NoMatch,
+            Partial,
+            Full
+        }
+
         internal static class Properties
         {
             public const string Background = "Background";
             public const string Foreground = "Foreground";
+            public const string BorderBrush = "BorderBrush";
+            public const string IsProcessing = "IsProcessing";
         }
 
         public RegexPuzzleRectPatternVM(RegexPuzzleRectVM viewModel, int row, int col) : base(viewModel, row, col)
@@ -69,7 +82,7 @@ namespace RegexSolver
         public void OnCellChanged(int row, int column)
         {
             if (row == this.row || column == this.col)
-                OnPropertyChanged(Properties.Background);
+                updateBackground();
         }
 
         public string Text
@@ -81,7 +94,7 @@ namespace RegexSolver
                     pattern = new Pattern(value);
                 pattern.Text = value;
                 OnPropertyChanged(Properties.Foreground);
-                OnPropertyChanged(Properties.Background);
+                updateBackground();
             }
         }
 
@@ -92,28 +105,61 @@ namespace RegexSolver
             set
             {
                 isDisabled = value;
+                updateBackground();
+            }
+        }
+
+        private async void updateBackground(bool bAsync = true)
+        {
+            if (isDisabled)
+                lastRegexMatchResult = RegexMatchResult.Disabled;
+            else if (string.IsNullOrEmpty(Text))
+                lastRegexMatchResult = RegexMatchResult.NoRegex;
+            else
+            {
+                if (bAsync)
+                {
+                    IsProcessing = true;
+                    OnPropertyChanged(Properties.Background);
+
+                    RegexMatchResult matchResult = await checkRegexMatchAsync();
+
+                    IsProcessing = false;
+                    if(!(IsDisabled || IsProcessing))
+                        lastRegexMatchResult = matchResult;
+                }
+                else
+                    lastRegexMatchResult = checkRegexMatch();
+            }
+            if (bAsync)
+            {
                 OnPropertyChanged(Properties.Background);
             }
         }
 
+        private RegexMatchResult lastRegexMatchResult = RegexMatchResult.Unknown;
         public Brush Background
         {
             get
             {
-                if (isDisabled)
-                    return Brushes.LightGray;
-                if (!String.IsNullOrEmpty(Text))
+                switch (lastRegexMatchResult)
                 {
-                    switch (checkRegexMatch())
-                    {
-                        case 0: return Brushes.Transparent;
-                        case 1: return Brushes.Pink;
-                        case 2: return Brushes.LightGreen;
-                        case 3: return Brushes.LimeGreen;
-                    }
-
+                    case RegexMatchResult.Unknown:
+                        updateBackground(false);
+                        return Brushes.Transparent;
+                    case RegexMatchResult.Disabled:
+                        return Brushes.LightGray;
+                    case RegexMatchResult.Processing:
+                        return puzzleVM.BlinkBrush;
+                    case RegexMatchResult.NoMatch:
+                        return Brushes.Pink;
+                    case RegexMatchResult.Partial:
+                        return Brushes.LightGreen;
+                    case RegexMatchResult.Full:
+                        return Brushes.LimeGreen;
+                    default:
+                        return Brushes.Transparent;
                 }
-                return Brushes.Transparent;
             }
         }
 
@@ -124,6 +170,41 @@ namespace RegexSolver
                 if (pattern?.IsError == true)
                     return Brushes.Red;
                 return Brushes.DarkBlue;
+            }
+        }
+
+        private int processingCount = 0;
+        public bool IsProcessing
+        {
+            get { return processingCount > 0; }
+            set
+            {
+                lock (this)
+                {
+                    if (value)
+                    {
+                        if (!IsDisabled)
+                        {
+                            if (lastRegexMatchResult != RegexMatchResult.Processing)
+                            {
+                                lastRegexMatchResult = RegexMatchResult.Processing;
+                                OnPropertyChanged(Properties.Background);
+                            }
+                            processingCount++;
+                        }
+                    }
+                    else
+                    {
+                        processingCount = processingCount > 0 ? processingCount-1 : 0;
+                    }
+                }
+            }
+        }
+        public Brush BorderBrush
+        {
+            get
+            {
+                return Brushes.Transparent;
             }
         }
 
@@ -144,13 +225,18 @@ namespace RegexSolver
             }
         }
 
-        private int checkRegexMatch()
+        private async Task<RegexMatchResult> checkRegexMatchAsync()
+        {
+            return await Task.Run(() => checkRegexMatch());
+        }
+
+        private RegexMatchResult checkRegexMatch()
         {
             Regex r = pattern?.Regex;
             if (r == null)
-                return 0;
+                return RegexMatchResult.NoRegex;
 
-            int res = 0;
+            RegexMatchResult res = RegexMatchResult.Unknown;
             string[,] cells = null;
             bool empty = false;
             bool multi = false;
@@ -181,9 +267,9 @@ namespace RegexSolver
                 if (findMatch(cells, 0, "", r))
                 {
                     if (!multi)
-                        res = 3;
+                        res = RegexMatchResult.Full;
                     else
-                        res = 2;
+                        res = RegexMatchResult.Partial;
 
                     for (int i = 0; i <= cells.GetUpperBound(0); i++)
                     {
@@ -197,8 +283,9 @@ namespace RegexSolver
                     }
                 }
                 else
-                    res = 1;
+                    res = RegexMatchResult.NoMatch;
             }
+
             return res;
         }
 

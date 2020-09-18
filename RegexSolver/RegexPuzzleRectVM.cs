@@ -52,6 +52,9 @@ namespace RegexSolver
             }
         }
 
+
+        public Brush BlinkBrush { get; set; }
+
         public void Import()
         {
             if (ensureSaveChanged())

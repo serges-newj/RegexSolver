@@ -9,6 +9,7 @@ using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
@@ -25,6 +26,11 @@ namespace RegexSolver
         public MainWindow()
         {
             InitializeComponent();
+
+            Blink.Fill = new SolidColorBrush(Colors.OrangeRed);
+            Blink.Fill.BeginAnimation(SolidColorBrush.ColorProperty, this.Resources["BlinkBrush"] as ColorAnimation);
+            vm.BlinkBrush = Blink.Fill;
+
             DataContext = vm;
             vm.PropertyChanged += vm_PropertyChanged;
             Crossword.Children.Clear();

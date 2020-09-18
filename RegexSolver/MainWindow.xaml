@@ -7,25 +7,32 @@
         mc:Ignorable="d"
         Title="RegexSolver" Height="800" Width="1024" MinHeight="400" MinWidth="600">
     <Window.Resources>
-        <Style x:Key="RegexBaseStyle" TargetType="TextBoxBase">
-            <Setter Property="BorderThickness" Value="0"/>
+        <ColorAnimation x:Key="BlinkBrush" From="OrangeRed" To="Orange" 
+                        RepeatBehavior="Forever"
+                        FillBehavior="Stop" 
+                        AutoReverse="True"
+                        Duration="0:0:1"/>
+        
+        <Style x:Key="PatternBaseStyle" TargetType="TextBoxBase">
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
             <Setter Property="FontFamily" Value="Lucida Console"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="Foreground" Value="DarkBlue"/>
         </Style>
-        <Style x:Key="RegexHorizontalStyle" TargetType="TextBox" BasedOn="{StaticResource RegexBaseStyle}">
+        <Style x:Key="PatternHorizontalStyle" TargetType="TextBox" BasedOn="{StaticResource PatternBaseStyle}">
             <Setter Property="VerticalAlignment" Value="Stretch"/>
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
             <Setter Property="Margin" Value="5,0"/>
             <Setter Property="Padding" Value="5,13"/>
         </Style>
-        <Style x:Key="RegexLeftStyle" TargetType="TextBox" BasedOn="{StaticResource RegexHorizontalStyle}">
+        <Style x:Key="PatternLeftStyle" TargetType="TextBox" BasedOn="{StaticResource PatternHorizontalStyle}">
             <Setter Property="TextAlignment" Value="Right"/>
         </Style>
-        <Style x:Key="RegexRightStyle" TargetType="TextBox" BasedOn="{StaticResource RegexHorizontalStyle}">
+        <Style x:Key="PatternRightStyle" TargetType="TextBox" BasedOn="{StaticResource PatternHorizontalStyle}">
             <Setter Property="TextAlignment" Value="Left"/>
         </Style>
-        <Style x:Key="RegexVerticalStyle" TargetType="TextBox" BasedOn="{StaticResource RegexBaseStyle}">
+        <Style x:Key="PatternVerticalStyle" TargetType="TextBox" BasedOn="{StaticResource PatternBaseStyle}">
             <Setter Property="VerticalAlignment" Value="Stretch"/>
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
             <Setter Property="Margin" Value="0,5"/>
@@ -41,10 +48,10 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        <Style x:Key="RegexTopStyle" TargetType="TextBox" BasedOn="{StaticResource RegexVerticalStyle}">
+        <Style x:Key="PatternTopStyle" TargetType="TextBox" BasedOn="{StaticResource PatternVerticalStyle}">
             <Setter Property="TextAlignment" Value="Right"/>
         </Style>
-        <Style x:Key="RegexBottomStyle" TargetType="TextBox" BasedOn="{StaticResource RegexVerticalStyle}">
+        <Style x:Key="PatternBottomStyle" TargetType="TextBox" BasedOn="{StaticResource PatternVerticalStyle}">
             <Setter Property="TextAlignment" Value="Left"/>
         </Style>
 
@@ -69,19 +76,22 @@
         </Style>
 
         <DataTemplate DataType="{x:Type local:RegexPuzzleRectPatternVM}">
-            <TextBox x:Name="tb" Text="{Binding Text}" Background="{Binding Background}" Foreground="{Binding Foreground}" MouseDoubleClick="Pattern_MouseDoubleClick"/>
+            <Border BorderThickness="1" BorderBrush="Transparent">
+                <TextBox x:Name="tb" Text="{Binding Text}" Background="{Binding Background}" Foreground="{Binding Foreground}" BorderThickness="0"
+                         MouseDoubleClick="Pattern_MouseDoubleClick"/>
+            </Border>
             <DataTemplate.Triggers>
                 <DataTrigger Binding="{Binding Side}" Value="Left">
-                    <Setter TargetName="tb" Property="Style" Value="{StaticResource RegexLeftStyle}"/>
+                    <Setter TargetName="tb" Property="Style" Value="{StaticResource PatternLeftStyle}"/>
                 </DataTrigger>
                 <DataTrigger Binding="{Binding Side}" Value="Right">
-                    <Setter TargetName="tb" Property="Style" Value="{StaticResource RegexRightStyle}"/>
+                    <Setter TargetName="tb" Property="Style" Value="{StaticResource PatternRightStyle}"/>
                 </DataTrigger>
                 <DataTrigger Binding="{Binding Side}" Value="Top">
-                    <Setter TargetName="tb" Property="Style" Value="{StaticResource RegexTopStyle}"/>
+                    <Setter TargetName="tb" Property="Style" Value="{StaticResource PatternTopStyle}"/>
                 </DataTrigger>
                 <DataTrigger Binding="{Binding Side}" Value="Bottom">
-                    <Setter TargetName="tb" Property="Style" Value="{StaticResource RegexBottomStyle}"/>
+                    <Setter TargetName="tb" Property="Style" Value="{StaticResource PatternBottomStyle}"/>
                 </DataTrigger>
             </DataTemplate.Triggers>
         </DataTemplate>
@@ -143,11 +153,12 @@
                 <ColumnDefinition Width="40"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <TextBox Grid.Row="1" Grid.Column="0" Style="{StaticResource RegexLeftStyle}" Text="[P-{][^\x5a-\x7e][%-_]" Background="LightGreen"/>
-            <TextBox Grid.Row="1" Grid.Column="3" Style="{StaticResource RegexRightStyle}" Text="[ -`][X-\\][^\44-\127]" Background="Pink"/>
-            <TextBox Grid.Row="0" Grid.Column="1" Style="{StaticResource RegexTopStyle}" Text="[^\x5b-\x61]" Background="LightGray"/>
-            <TextBox Grid.Row="2" Grid.Column="1" Style="{StaticResource RegexBottomStyle}" Text="[^\40-\131]"/>
+            <TextBox Grid.Row="1" Grid.Column="0" Style="{StaticResource PatternLeftStyle}" Text="[P-{][^\x5a-\x7e][%-_]" Background="LightGreen"/>
+            <TextBox Grid.Row="1" Grid.Column="3" Style="{StaticResource PatternRightStyle}" Text="[ -`][X-\\][^\44-\127]" Background="Pink"/>
+            <TextBox Grid.Row="0" Grid.Column="1" Style="{StaticResource PatternTopStyle}" Text="[^\x5b-\x61]" Background="LightGray"/>
+            <TextBox Grid.Row="2" Grid.Column="1" Style="{StaticResource PatternBottomStyle}" Text="[^\40-\131]"/>
             <TextBox Grid.Row="1" Grid.Column="1" Style="{StaticResource CellStyle}" Text="MWA\s" FontSize="12" Background="MistyRose"/>
         </Grid>
+        <Rectangle x:Name="Blink" Fill="#FFFFFFFF" Width="10" Height="10" Grid.Row="1" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="10"/>
     </Grid>
 </Window>
