@@ -32,6 +32,7 @@
                     <ToolTip Style="{StaticResource PatternTooltipStyle}" Content="{Binding Text}"/>
                 </Setter.Value>
             </Setter>
+            <Setter Property="ToolTipService.ShowDuration" Value="120000"/>
         </Style>
         <Style x:Key="PatternHorizontalStyle" TargetType="TextBox" BasedOn="{StaticResource PatternBaseStyle}">
             <Setter Property="VerticalAlignment" Value="Stretch"/>
