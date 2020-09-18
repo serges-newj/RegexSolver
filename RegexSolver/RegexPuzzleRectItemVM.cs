@@ -380,6 +380,8 @@ namespace RegexSolver
         {
             wrongChars[(int)side + 1] = chars;
             wrongChars[0] = string.Join(string.Empty, (wrongChars[1] + wrongChars[2] + wrongChars[3] + wrongChars[4]).Distinct());
+            if (string.IsNullOrEmpty(wrongChars[0]))
+                wrongChars[0] = null;
             OnPropertyChanged(Properties.WrongChars);
             OnPropertyChanged(Properties.Background);
         }

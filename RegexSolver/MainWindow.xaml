@@ -14,11 +14,24 @@
                         Duration="0:0:1"/>
         
         <Style x:Key="PatternBaseStyle" TargetType="TextBoxBase">
+            <Style.Resources>
+                <Style x:Key="PatternTooltipStyle" TargetType="ToolTip">
+                    <Setter Property="Background" Value="LightYellow"></Setter>
+                    <Setter Property="Foreground" Value="DarkBlue"></Setter>
+                    <Setter Property="FontFamily" Value="Lucida Console"/>
+                    <Setter Property="FontSize" Value="13"/>
+                </Style>
+            </Style.Resources>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="BorderBrush" Value="Transparent"/>
             <Setter Property="FontFamily" Value="Lucida Console"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="Foreground" Value="DarkBlue"/>
+            <Setter Property="ToolTip">
+                <Setter.Value>
+                    <ToolTip Style="{StaticResource PatternTooltipStyle}" Content="{Binding Text}"/>
+                </Setter.Value>
+            </Setter>
         </Style>
         <Style x:Key="PatternHorizontalStyle" TargetType="TextBox" BasedOn="{StaticResource PatternBaseStyle}">
             <Setter Property="VerticalAlignment" Value="Stretch"/>
