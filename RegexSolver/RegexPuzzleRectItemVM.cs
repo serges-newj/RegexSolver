@@ -105,6 +105,8 @@ namespace RegexSolver
             set
             {
                 isDisabled = value;
+                if(isDisabled)
+                    getNewProcessingId(); // to break any current processing immediately
                 updateBackground();
             }
         }
@@ -119,17 +121,20 @@ namespace RegexSolver
             {
                 if (bAsync)
                 {
-                    IsProcessing = true;
-                    OnPropertyChanged(Properties.Background);
+                    int processingId = getNewProcessingId();
+                    if (lastRegexMatchResult != RegexMatchResult.Processing)
+                    {
+                        lastRegexMatchResult = RegexMatchResult.Processing;
+                        OnPropertyChanged(Properties.Background);
+                    }
 
-                    RegexMatchResult matchResult = await checkRegexMatchAsync();
+                    RegexMatchResult matchResult = await checkRegexMatchAsync(() => processingId != getLastProcessingId());
 
-                    IsProcessing = false;
-                    if(!(IsDisabled || IsProcessing))
+                    if (!IsDisabled && (processingId == getLastProcessingId()))
                         lastRegexMatchResult = matchResult;
                 }
                 else
-                    lastRegexMatchResult = checkRegexMatch();
+                    lastRegexMatchResult = checkRegexMatch(() => false);
             }
             if (bAsync)
             {
@@ -173,33 +178,19 @@ namespace RegexSolver
             }
         }
 
-        private int processingCount = 0;
-        public bool IsProcessing
+        private int processingCounter = 0;
+        private int getLastProcessingId()
         {
-            get { return processingCount > 0; }
-            set
+            return processingCounter;
+        }
+        private int getNewProcessingId()
+        {
+            lock (this)
             {
-                lock (this)
-                {
-                    if (value)
-                    {
-                        if (!IsDisabled)
-                        {
-                            if (lastRegexMatchResult != RegexMatchResult.Processing)
-                            {
-                                lastRegexMatchResult = RegexMatchResult.Processing;
-                                OnPropertyChanged(Properties.Background);
-                            }
-                            processingCount++;
-                        }
-                    }
-                    else
-                    {
-                        processingCount = processingCount > 0 ? processingCount-1 : 0;
-                    }
-                }
+                return ++processingCounter;
             }
         }
+
         public Brush BorderBrush
         {
             get
@@ -225,12 +216,13 @@ namespace RegexSolver
             }
         }
 
-        private async Task<RegexMatchResult> checkRegexMatchAsync()
+        private delegate bool breakCondition();
+        private async Task<RegexMatchResult> checkRegexMatchAsync(breakCondition stop)
         {
-            return await Task.Run(() => checkRegexMatch());
+            return await Task.Run(() => checkRegexMatch(stop));
         }
 
-        private RegexMatchResult checkRegexMatch()
+        private RegexMatchResult checkRegexMatch(breakCondition stop)
         {
             Regex r = pattern?.Regex;
             if (r == null)
@@ -264,7 +256,7 @@ namespace RegexSolver
             }
             if (!empty)
             {
-                if (findMatch(cells, 0, "", r))
+                if (findMatch(cells, 0, "", r, stop))
                 {
                     if (!multi)
                         res = RegexMatchResult.Full;
@@ -283,13 +275,18 @@ namespace RegexSolver
                     }
                 }
                 else
-                    res = RegexMatchResult.NoMatch;
+                {
+                    if (stop())
+                        res = RegexMatchResult.Unknown;
+                    else
+                        res = RegexMatchResult.NoMatch;
+                }
             }
 
             return res;
         }
 
-        private bool findMatch(string[,] cells, int idx, string line, Regex r)
+        private bool findMatch(string[,] cells, int idx, string line, Regex r, breakCondition stop)
         {
             if (idx > cells.GetUpperBound(0))
             {
@@ -303,7 +300,9 @@ namespace RegexSolver
                 string chars = cells[idx, 0];
                 foreach (char c in chars)
                 {
-                    if (findMatch(cells, idx + 1, line + c, r))
+                    if (stop())
+                        return false;
+                    if (findMatch(cells, idx + 1, line + c, r, stop))
                     {
                         match = true;
                         if (!cells[idx, 1].Contains(c))
