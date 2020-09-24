@@ -83,6 +83,16 @@ namespace RegexSolver
 
             ContentPresenter cp = null;
 
+            for (int row = 1; row <= vm.Puzzle.Rows; row++)
+                for (int col = 1; col <= vm.Puzzle.Cols; col++)
+                {
+                    cp = new ContentPresenter() { Content = new RegexPuzzleRectCellVM(vm, row, col) };
+                    cp.SetValue(Grid.RowProperty, row);
+                    cp.SetValue(Grid.ColumnProperty, col);
+                    
+                    Crossword.Children.Add(cp);
+                }
+
             Crossword.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, GridUnitType.Star) });
             for (int row = 1; row <= vm.Puzzle.Rows; row++)
             {
@@ -116,16 +126,6 @@ namespace RegexSolver
                 Crossword.Children.Add(cp);
             }
             Crossword.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(1, GridUnitType.Star) });
-
-            for (int row = 1; row <= vm.Puzzle.Rows; row++)
-                for (int col = 1; col <= vm.Puzzle.Cols; col++)
-                {
-                    cp = new ContentPresenter() { Content = new RegexPuzzleRectCellVM(vm, row, col) };
-                    cp.SetValue(Grid.RowProperty, row);
-                    cp.SetValue(Grid.ColumnProperty, col);
-                    
-                    Crossword.Children.Add(cp);
-                }
         }
 
         private void Crossword_TextChanged(object sender, TextChangedEventArgs e)
