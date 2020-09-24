@@ -166,9 +166,9 @@ namespace RegexSolver
                 item.OnCellChanged(row, column);
         }
 
-        public void AddCellWrongChars(int row, int column, Dock side, string wrongChars)
+        public void SetCellWrongChars(int row, int column, Dock side, string wrongChars)
         {
-            items.OfType<RegexPuzzleRectCellVM>().Where(c => c.Row == row && c.Col == column).First()?.AddWrongChars(side, wrongChars);
+            items.OfType<RegexPuzzleRectCellVM>().Where(c => c.Row == row && c.Col == column).First()?.SetWrongChars(side, wrongChars);
         }
 
         public void ClearTemp()

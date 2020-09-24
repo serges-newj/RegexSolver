@@ -45,11 +45,11 @@ namespace RegexSolver
             public const string Background = "Background";
             public const string Foreground = "Foreground";
             public const string BorderBrush = "BorderBrush";
-            public const string IsProcessing = "IsProcessing";
         }
 
         public RegexPuzzleRectPatternVM(RegexPuzzleRectVM viewModel, int row, int col) : base(viewModel, row, col)
         {
+            updateBackground();
         }
 
         private Pattern pattern
@@ -147,11 +147,10 @@ namespace RegexSolver
         {
             get
             {
+                if (lastRegexMatchResult == RegexMatchResult.Unknown)
+                    updateBackground(false);
                 switch (lastRegexMatchResult)
                 {
-                    case RegexMatchResult.Unknown:
-                        updateBackground(false);
-                        return Brushes.Transparent;
                     case RegexMatchResult.Disabled:
                         return Brushes.LightGray;
                     case RegexMatchResult.Processing:
@@ -256,7 +255,7 @@ namespace RegexSolver
             }
             if (!empty)
             {
-                if (findMatch(cells, 0, "", r, stop))
+                if (findMatch(cells, 0, "", r, stop) && !stop())
                 {
                     if (!multi)
                         res = RegexMatchResult.Full;
@@ -269,9 +268,9 @@ namespace RegexSolver
                         if (cells[i, 0].Length > cells[i, 1].Length)
                             wrongChars = string.Join(string.Empty, cells[i, 0].Where(c => !cells[i, 1].Contains(c)));
                         if (col == 0 || col == model.Cols + 1)
-                            puzzleVM.AddCellWrongChars(row, i + 1, Side, wrongChars);
+                            puzzleVM.SetCellWrongChars(row, i + 1, Side, wrongChars);
                         else
-                            puzzleVM.AddCellWrongChars(i + 1, col, Side, wrongChars);
+                            puzzleVM.SetCellWrongChars(i + 1, col, Side, wrongChars);
                     }
                 }
                 else
@@ -375,10 +374,11 @@ namespace RegexSolver
             OnPropertyChanged(Properties.Background);
         }
 
-        public void AddWrongChars(Dock side, string chars)
+        public void SetWrongChars(Dock side, string chars)
         {
             wrongChars[(int)side + 1] = chars;
-            wrongChars[0] = string.Join(string.Empty, (wrongChars[1] + wrongChars[2] + wrongChars[3] + wrongChars[4]).Distinct());
+            wrongChars[0] = string.Concat( string.Join(string.Empty, wrongChars[1], wrongChars[2], wrongChars[3], wrongChars[4]).Distinct());
+            
             if (string.IsNullOrEmpty(wrongChars[0]))
                 wrongChars[0] = null;
             OnPropertyChanged(Properties.WrongChars);
@@ -397,8 +397,8 @@ namespace RegexSolver
             {
                 if (String.IsNullOrEmpty(wrongChars[0]))
                     return Brushes.Transparent;
-                if (!IsTemp && wrongChars[0].Length == text.Length)
-                    return Brushes.MistyRose;
+                if (wrongChars[0].Length == text.Length)
+                    return IsTemp ? Brushes.MistyRose : Brushes.LightPink;
                 return Brushes.LightCyan;
             }
         }

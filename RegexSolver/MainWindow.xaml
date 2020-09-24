@@ -171,7 +171,7 @@
             <TextBox Grid.Row="1" Grid.Column="3" Style="{StaticResource PatternRightStyle}" Text="[ -`][X-\\][^\44-\127]" Background="Pink"/>
             <TextBox Grid.Row="0" Grid.Column="1" Style="{StaticResource PatternTopStyle}" Text="[^\x5b-\x61]" Background="LightGray"/>
             <TextBox Grid.Row="2" Grid.Column="1" Style="{StaticResource PatternBottomStyle}" Text="[^\40-\131]"/>
-            <TextBox Grid.Row="1" Grid.Column="1" Style="{StaticResource CellStyle}" Text="MWA\s" FontSize="12" Background="MistyRose"/>
+            <TextBox Grid.Row="1" Grid.Column="1" Style="{StaticResource CellStyle}" Text="MWA\s" FontSize="12" Background="LightPink"/>
         </Grid>
         <Rectangle x:Name="Blink" Fill="#FFFFFFFF" Width="10" Height="10" Grid.Row="1" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="10"/>
     </Grid>
