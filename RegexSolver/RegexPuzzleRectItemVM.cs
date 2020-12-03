@@ -393,7 +393,7 @@ namespace RegexSolver
 
         public void RemoveWrongChars()
         {
-            VisibleText = String.Join(string.Empty, text.Where(c => !WrongChars.Contains(c)));
+            VisibleText = String.Join(string.Empty, text.Where(c => !wrongChars[0].Contains(c)));
         }
 
         public Brush Background
