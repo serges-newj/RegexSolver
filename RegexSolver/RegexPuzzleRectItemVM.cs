@@ -391,6 +391,11 @@ namespace RegexSolver
                 VisibleText = string.Concat(text.Distinct());
         }
 
+        public void RemoveWrongChars()
+        {
+            VisibleText = String.Join(string.Empty, text.Where(c => !WrongChars.Contains(c)));
+        }
+
         public Brush Background
         {
             get

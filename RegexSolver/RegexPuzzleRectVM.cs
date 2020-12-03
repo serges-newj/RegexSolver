@@ -188,7 +188,7 @@ namespace RegexSolver
                 cleaned = false;
                 foreach (var cell in items.OfType<RegexPuzzleRectCellVM>().Where(cell => !String.IsNullOrEmpty(cell.WrongChars)))
                 {
-                    cell.VisibleText = String.Join(string.Empty, cell.VisibleText.Where(c => !cell.WrongChars.Contains(c)));
+                    cell.RemoveWrongChars();
                     cleaned = true;
                 }
             } while (cleaned);
