@@ -122,7 +122,7 @@
         </Grid.RowDefinitions>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
             <ToggleButton x:Name="btnNew" Content="New" HorizontalAlignment="Left" Height="30" Margin="5,0" VerticalAlignment="Center" Width="90"/>
-            <Popup x:Name="Popup"
+            <Popup x:Name="PopupNew"
                     PlacementTarget="{Binding ElementName=btnNew}"
                     IsOpen="{Binding IsChecked, ElementName=btnNew, Mode=TwoWay}"
                     StaysOpen="False"
@@ -141,14 +141,25 @@
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="10">
                             <Button Content="Import from regexcrossword.com" HorizontalAlignment="Left" Height="22" VerticalAlignment="Center" Width="190" Click="OnImport_Click" Background="#FFF5B74A"/>
                             <Label VerticalAlignment="Center" Margin="10,0,5,0">Id:</Label>
-                            <TextBox Width="152" VerticalAlignment="Center" Text="{Binding RCWID}"/>
+                            <TextBox Width="250" VerticalAlignment="Center" Text="{Binding RCWID}"/>
                         </StackPanel>
                     </StackPanel>
                 </Border>
             </Popup>
             <Button Content="ClearTemp" HorizontalAlignment="Left" Height="30" Margin="5,0" VerticalAlignment="Center" Width="90" Background="HotPink" Click="OnClearTemp_Click"/>
             <Button Content="CleanWrong" HorizontalAlignment="Left" Height="30" Margin="5,0" VerticalAlignment="Center" Width="90" Background="Aquamarine" Click="OnCleanWrong_Click"/>
-            <!--<Button Content="CheckWrong" HorizontalAlignment="Left" Height="30" Margin="15,0" VerticalAlignment="Center" Width="90" Background="LightCyan" Click="OnCheckWrong_Click"/>-->
+            <ToggleButton x:Name="btnFillAll" Content="FillAll" HorizontalAlignment="Left" Height="30" Margin="5,0" VerticalAlignment="Center" Width="90" Background="RoyalBlue"/>
+            <Popup x:Name="PopupFillAll"
+                    PlacementTarget="{Binding ElementName=btnFillAll}"
+                    IsOpen="{Binding IsChecked, ElementName=btnFillAll, Mode=TwoWay}"
+                    StaysOpen="False"
+                    AllowsTransparency="True"
+                    Focusable="False"
+                    PopupAnimation="Fade">
+                <Border BorderThickness="1" BorderBrush="Black" Background="White" Padding="20,10">
+                    <TextBox Width="150" VerticalAlignment="Center" PreviewKeyDown="OnFillAll_PreviewKeyDown"/>
+                </Border>
+            </Popup>
         </StackPanel>
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
             <Button Content="Open" HorizontalAlignment="Left" Height="30" Margin="5,0" VerticalAlignment="Center" Width="90" Click="OnOpen_Click"/>

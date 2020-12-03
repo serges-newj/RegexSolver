@@ -193,5 +193,16 @@ namespace RegexSolver
                 }
             } while (cleaned);
         }
+
+        public void FillAll(string text)
+        {
+            text = text.Replace("\\s", " ");
+            if (string.Concat(text.Distinct()).Length < text.Length)
+                text = string.Concat(text.Distinct());
+            foreach (var cell in items.OfType<RegexPuzzleRectCellVM>().Where(cell => String.IsNullOrEmpty(cell.VisibleText)))
+            {
+                cell.VisibleText = text;
+            }
+        }
     }
 }

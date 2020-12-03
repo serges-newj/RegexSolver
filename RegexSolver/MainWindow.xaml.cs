@@ -75,6 +75,18 @@ namespace RegexSolver
             vm.CleanWrong();
         }
 
+        private void OnFillAll_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                TextBox tb = sender as TextBox;
+                if (tb != null && !string.IsNullOrEmpty(tb.Text))
+                {
+                    vm.FillAll(tb.Text);
+                }
+            }
+        }
+
         private void generateCrossword()
         {
             Crossword.Children.Clear();
