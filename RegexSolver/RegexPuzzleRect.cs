@@ -29,11 +29,11 @@ namespace RegexSolver
                 {
                     try
                     {
-                        new Regex(text);
+                        new Regex(text, RegexOptions.ECMAScript);
                         string pattern = text;
                         if (!pattern.StartsWith("^")) pattern = "^" + pattern;
                         if (!pattern.EndsWith("$")) pattern = pattern + "$";
-                        Regex = new Regex(pattern);
+                        Regex = new Regex(pattern, RegexOptions.ECMAScript);
                     }
                     catch (Exception)
                     {
