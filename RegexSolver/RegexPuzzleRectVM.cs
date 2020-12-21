@@ -82,6 +82,11 @@ namespace RegexSolver
                             OnPropertyChanged(Properties.Puzzle);
                             OnPropertyChanged(Properties.PuzzleName);
                             IsModified = true;
+
+                            if (puzzleJSON.characters != null)
+                            {
+                                puzzle.Cells[0,0] = new string(puzzleJSON.characters);
+                            }
                         }
                     }
                 }
@@ -168,7 +173,7 @@ namespace RegexSolver
 
         public void SetCellWrongChars(int row, int column, Dock side, string wrongChars)
         {
-            items.OfType<RegexPuzzleRectCellVM>().Where(c => c.Row == row && c.Col == column).First()?.SetWrongChars(side, wrongChars);
+            items.OfType<RegexPuzzleRectCellVM>().SingleOrDefault(c => c.Row == row && c.Col == column)?.SetWrongChars(side, wrongChars);
         }
 
         public void ClearTemp()

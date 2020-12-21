@@ -15,7 +15,7 @@ namespace RegexSolver
         public string[][] patternsY { get; set; }
         public string[][] patternsZ { get; set; }
         public string[] solutionMap { get; set; }
-        public string characters { get; set; }
+        public char[] characters { get; set; }
         public string size { get; set; }
         public bool hexagonal { get; set; }
         public bool mobile { get; set; }
