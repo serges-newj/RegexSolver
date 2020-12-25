@@ -36,7 +36,10 @@ namespace RegexSolver
 
         internal void AddItem(RegexPuzzleRectItemVM item)
         {
-            items.Add(item);
+            lock (items)
+            {
+                items.Add(item);
+            }
         }
 
         public void New()
@@ -173,7 +176,10 @@ namespace RegexSolver
 
         public void SetCellWrongChars(int row, int column, Dock side, string wrongChars)
         {
-            items.OfType<RegexPuzzleRectCellVM>().SingleOrDefault(c => c.Row == row && c.Col == column)?.SetWrongChars(side, wrongChars);
+            lock (items)
+            {
+                items.OfType<RegexPuzzleRectCellVM>().SingleOrDefault(c => c.Row == row && c.Col == column)?.SetWrongChars(side, wrongChars);
+            }
         }
 
         public void ClearTemp()
