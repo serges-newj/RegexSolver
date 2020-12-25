@@ -31,8 +31,9 @@ namespace RegexSolver
                     {
                         new Regex(text, RegexOptions.ECMAScript);
                         string pattern = text;
-                        if (!pattern.StartsWith("^")) pattern = "^" + pattern;
-                        if (!pattern.EndsWith("$")) pattern = pattern + "$";
+                        //if (!pattern.StartsWith("^")) pattern = "^" + pattern;
+                        //if (!pattern.EndsWith("$")) pattern = pattern + "$";
+                        pattern = "^(?:" + pattern + ")$";
                         Regex = new Regex(pattern, RegexOptions.ECMAScript);
                     }
                     catch (Exception)
