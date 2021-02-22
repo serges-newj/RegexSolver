@@ -65,6 +65,11 @@ namespace RegexSolver
             vm.Save(sender == btnSaveAs);
         }
 
+        private void OnClearAll_Click(object sender, RoutedEventArgs e)
+        {
+            vm.ClearAll();
+        }
+
         private void OnClearTemp_Click(object sender, RoutedEventArgs e)
         {
             vm.ClearTemp();
@@ -169,6 +174,16 @@ namespace RegexSolver
             {
                 RegexPuzzleRectCellVM cellVM = tb.DataContext as RegexPuzzleRectCellVM;
                 cellVM.RemoveRepeatedChars();
+            }
+        }
+
+        private void Cell_PasteUnwrapped(object sender, RoutedEventArgs e)
+        {
+            FrameworkElement fe = sender as FrameworkElement;
+            if (fe.DataContext is RegexPuzzleRectCellVM)
+            {
+                RegexPuzzleRectCellVM cellVM = fe.DataContext as RegexPuzzleRectCellVM;
+                cellVM.PasteUnwrapped();
             }
         }
 

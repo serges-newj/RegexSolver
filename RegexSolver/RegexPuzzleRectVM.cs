@@ -182,6 +182,15 @@ namespace RegexSolver
             }
         }
 
+        public void ClearAll()
+        {
+            foreach (var cell in items.OfType<RegexPuzzleRectCellVM>())
+            {
+                cell.IsTemp = false;
+                cell.VisibleText = String.Empty;
+            }
+        }
+
         public void ClearTemp()
         {
             foreach (var cell in items.OfType<RegexPuzzleRectCellVM>().Where(c => c.IsTemp))

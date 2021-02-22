@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 
@@ -394,6 +396,33 @@ namespace RegexSolver
         public void RemoveWrongChars()
         {
             VisibleText = String.Join(string.Empty, text.Where(c => !wrongChars[0].Contains(c)));
+        }
+
+        public void PasteUnwrapped()
+        {
+            if (Clipboard.ContainsText(TextDataFormat.Text))
+            {
+                string text = Clipboard.GetText(TextDataFormat.Text);
+                Regex regex = new Regex(@"\\U([0-9A-F]{4})", RegexOptions.IgnoreCase);
+                text = regex.Replace(text, match => ((char)int.Parse(match.Groups[1].Value, NumberStyles.HexNumber)).ToString());
+                text = text.Replace("\\d", "0123456789");
+                int pos = 0;
+                StringBuilder sb = new StringBuilder();
+                while (pos < text.Length)
+                {
+                    if (text[pos] == '-' && pos > 0 && text[pos - 1] != '\\' && pos + 1 < text.Length)
+                    {
+                        char c = (char)((int)text[pos - 1] + 1);
+                        while (c < text[pos + 1] && !(c >= 'a' && c <= 'z'))
+                            sb.Append(c++);
+                        pos++;
+                    }
+                    sb.Append(text[pos]);
+                    pos++;
+
+                }
+                VisibleText = sb.ToString();
+            }
         }
 
         public Brush Background

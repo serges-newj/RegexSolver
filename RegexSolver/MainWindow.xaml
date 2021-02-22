@@ -112,7 +112,18 @@
         <DataTemplate DataType="{x:Type local:RegexPuzzleRectCellVM}">
             <TextBox Style="{StaticResource CellStyle}" Text="{Binding VisibleText, UpdateSourceTrigger=PropertyChanged}" FontSize="{Binding FontSize}"
                      Background="{Binding Background}" BorderBrush="{Binding BorderBrush}" ToolTip="{Binding WrongChars}"
-                     MouseDoubleClick="Cell_MouseDoubleClick" LostKeyboardFocus="Cell_LostKeyboardFocus"/>
+                     MouseDoubleClick="Cell_MouseDoubleClick" LostKeyboardFocus="Cell_LostKeyboardFocus">
+                <TextBox.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Command="ApplicationCommands.Cut" />
+                        <MenuItem Command="ApplicationCommands.Copy" />
+                        <MenuItem Command="ApplicationCommands.Paste" />
+                        <MenuItem Command="ApplicationCommands.SelectAll" />
+                        <Separator/>
+                        <MenuItem Header="Paste unwrapped" MenuItem.Click="Cell_PasteUnwrapped"/>
+                    </ContextMenu>
+                </TextBox.ContextMenu>
+            </TextBox>
         </DataTemplate>
     </Window.Resources>
     <Grid>
@@ -146,6 +157,7 @@
                     </StackPanel>
                 </Border>
             </Popup>
+            <Button Content="ClearAll" HorizontalAlignment="Left" Height="30" Margin="5,0" VerticalAlignment="Center" Width="90" Background="Pink" Click="OnClearAll_Click"/>
             <Button Content="ClearTemp" HorizontalAlignment="Left" Height="30" Margin="5,0" VerticalAlignment="Center" Width="90" Background="HotPink" Click="OnClearTemp_Click"/>
             <Button Content="CleanWrong" HorizontalAlignment="Left" Height="30" Margin="5,0" VerticalAlignment="Center" Width="90" Background="Aquamarine" Click="OnCleanWrong_Click"/>
             <ToggleButton x:Name="btnFillAll" Content="FillAll" HorizontalAlignment="Left" Height="30" Margin="5,0" VerticalAlignment="Center" Width="90" Background="RoyalBlue"/>

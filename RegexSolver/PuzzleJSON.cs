@@ -16,14 +16,14 @@ namespace RegexSolver
         public string[][] patternsZ { get; set; }
         public string[] solutionMap { get; set; }
         public char[] characters { get; set; }
-        public string size { get; set; }
+        public int size { get; set; }
         public bool hexagonal { get; set; }
         public bool mobile { get; set; }
         public bool published { get; set; }
         public string dateCreated { get; set; }
         public string dateUpdated { get; set; }
         public float ratingAvg { get; set; }
-        public string votes { get; set; }
+        public int votes { get; set; }
         public object solved { get; set; }
         public bool ambiguous { get; set; }
     }
