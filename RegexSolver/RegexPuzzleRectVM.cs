@@ -10,6 +10,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using Newtonsoft.Json;
 using System.IO;
+using System.Windows.Threading;
 
 namespace RegexSolver
 {
@@ -33,6 +34,8 @@ namespace RegexSolver
         public int NewColumns { get; set; } = 1;
         public string RCWID { get; set; } = String.Empty;
         public string PuzzleName => puzzleName;
+        public Brush BlinkBrush { get; set; }
+        public DispatcherTimer UITimer { get; } = new DispatcherTimer() { Interval = new TimeSpan(0, 0, 0, 0, 40) };
 
         internal void AddItem(RegexPuzzleRectItemVM item)
         {
@@ -40,6 +43,23 @@ namespace RegexSolver
             {
                 items.Add(item);
             }
+        }
+
+        int uiTimer_counter = 0;
+        public void ActivateTimer(EventHandler handler)
+        {
+            UITimer.Tick += handler;
+            uiTimer_counter++;
+            if (!UITimer.IsEnabled)
+                UITimer.Start();
+        }
+
+        public void DeactivateTimer(EventHandler handler)
+        {
+            UITimer.Tick -= handler;
+            uiTimer_counter--;
+            if (uiTimer_counter == 0)
+                UITimer.Stop();
         }
 
         public void New()
@@ -54,9 +74,6 @@ namespace RegexSolver
                 IsModified = false;
             }
         }
-
-
-        public Brush BlinkBrush { get; set; }
 
         public void Import()
         {

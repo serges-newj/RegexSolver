@@ -13,7 +13,7 @@
                         AutoReverse="True"
                         Duration="0:0:1"/>
         
-        <Style x:Key="PatternBaseStyle" TargetType="TextBoxBase">
+        <Style x:Key="PatternTextBoxBaseStyle" TargetType="TextBoxBase">
             <Style.Resources>
                 <Style x:Key="PatternTooltipStyle" TargetType="ToolTip">
                     <Setter Property="Background" Value="LightYellow"></Setter>
@@ -22,6 +22,7 @@
                     <Setter Property="FontSize" Value="13"/>
                 </Style>
             </Style.Resources>
+            <Setter Property="Margin" Value="0"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="BorderBrush" Value="Transparent"/>
             <Setter Property="FontFamily" Value="Lucida Console"/>
@@ -34,24 +35,22 @@
             </Setter>
             <Setter Property="ToolTipService.ShowDuration" Value="120000"/>
         </Style>
-        <Style x:Key="PatternHorizontalStyle" TargetType="TextBox" BasedOn="{StaticResource PatternBaseStyle}">
+        <Style x:Key="PatternTextBoxHorizontalStyle" TargetType="TextBox" BasedOn="{StaticResource PatternTextBoxBaseStyle}">
             <Setter Property="VerticalAlignment" Value="Stretch"/>
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
-            <Setter Property="Margin" Value="5,0"/>
             <Setter Property="Padding" Value="5,13"/>
         </Style>
-        <Style x:Key="PatternLeftStyle" TargetType="TextBox" BasedOn="{StaticResource PatternHorizontalStyle}">
+        <Style x:Key="PatternTextBoxLeftStyle" TargetType="TextBox" BasedOn="{StaticResource PatternTextBoxHorizontalStyle}">
             <Setter Property="TextAlignment" Value="Right"/>
         </Style>
-        <Style x:Key="PatternRightStyle" TargetType="TextBox" BasedOn="{StaticResource PatternHorizontalStyle}">
+        <Style x:Key="PatternTextBoxRightStyle" TargetType="TextBox" BasedOn="{StaticResource PatternTextBoxHorizontalStyle}">
             <Setter Property="TextAlignment" Value="Left"/>
         </Style>
-        <Style x:Key="PatternVerticalStyle" TargetType="TextBox" BasedOn="{StaticResource PatternBaseStyle}">
+        <Style x:Key="PatternTextBoxVerticalStyle" TargetType="TextBox" BasedOn="{StaticResource PatternTextBoxBaseStyle}">
             <Setter Property="VerticalAlignment" Value="Stretch"/>
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
-            <Setter Property="Margin" Value="0,5"/>
             <Setter Property="Padding" Value="5,13"/>
-            <Setter Property="LayoutTransform">
+            <!--<Setter Property="LayoutTransform">
                 <Setter.Value>
                     <TransformGroup>
                         <ScaleTransform/>
@@ -60,12 +59,12 @@
                         <TranslateTransform/>
                     </TransformGroup>
                 </Setter.Value>
-            </Setter>
+            </Setter>-->
         </Style>
-        <Style x:Key="PatternTopStyle" TargetType="TextBox" BasedOn="{StaticResource PatternVerticalStyle}">
+        <Style x:Key="PatternTextBoxTopStyle" TargetType="TextBox" BasedOn="{StaticResource PatternTextBoxVerticalStyle}">
             <Setter Property="TextAlignment" Value="Right"/>
         </Style>
-        <Style x:Key="PatternBottomStyle" TargetType="TextBox" BasedOn="{StaticResource PatternVerticalStyle}">
+        <Style x:Key="PatternTextBoxBottomStyle" TargetType="TextBox" BasedOn="{StaticResource PatternTextBoxVerticalStyle}">
             <Setter Property="TextAlignment" Value="Left"/>
         </Style>
 
@@ -90,22 +89,32 @@
         </Style>
 
         <DataTemplate DataType="{x:Type local:RegexPuzzleRectPatternVM}">
+            <DataTemplate.Resources>
+               <RotateTransform x:Key="Vertical" Angle="90"/>
+               <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+            </DataTemplate.Resources>
             <Border BorderThickness="1" BorderBrush="Transparent">
-                <TextBox x:Name="tb" Text="{Binding Text}" Background="{Binding Background}" Foreground="{Binding Foreground}" BorderThickness="0"
+                <Grid Margin="5,0" Background="{Binding Background}">
+                    <ProgressBar x:Name="progress" Background="Transparent" Foreground="#44FFFFFF" Minimum="0" Maximum="1"
+                                 Value="{Binding Progress, Mode=OneWay}" Visibility="{Binding InProcessing, Converter={StaticResource BoolToVis}}"/>
+                    <TextBox x:Name="tb" Text="{Binding Text}" Background="Transparent" Foreground="{Binding Foreground}" BorderThickness="0"
                          MouseDoubleClick="Pattern_MouseDoubleClick"/>
+                </Grid>
             </Border>
             <DataTemplate.Triggers>
                 <DataTrigger Binding="{Binding Side}" Value="Left">
-                    <Setter TargetName="tb" Property="Style" Value="{StaticResource PatternLeftStyle}"/>
+                    <Setter TargetName="tb" Property="Style" Value="{StaticResource PatternTextBoxLeftStyle}"/>
                 </DataTrigger>
                 <DataTrigger Binding="{Binding Side}" Value="Right">
-                    <Setter TargetName="tb" Property="Style" Value="{StaticResource PatternRightStyle}"/>
+                    <Setter TargetName="tb" Property="Style" Value="{StaticResource PatternTextBoxRightStyle}"/>
                 </DataTrigger>
                 <DataTrigger Binding="{Binding Side}" Value="Top">
-                    <Setter TargetName="tb" Property="Style" Value="{StaticResource PatternTopStyle}"/>
+                    <Setter TargetName="tb" Property="Style" Value="{StaticResource PatternTextBoxTopStyle}"/>
+                    <Setter Property="LayoutTransform" Value="{StaticResource Vertical}"/>
                 </DataTrigger>
                 <DataTrigger Binding="{Binding Side}" Value="Bottom">
-                    <Setter TargetName="tb" Property="Style" Value="{StaticResource PatternBottomStyle}"/>
+                    <Setter TargetName="tb" Property="Style" Value="{StaticResource PatternTextBoxBottomStyle}"/>
+                    <Setter Property="LayoutTransform" Value="{StaticResource Vertical}"/>
                 </DataTrigger>
             </DataTemplate.Triggers>
         </DataTemplate>
@@ -190,10 +199,23 @@
                 <ColumnDefinition Width="40"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <TextBox Grid.Row="1" Grid.Column="0" Style="{StaticResource PatternLeftStyle}" Text="[P-{][^\x5a-\x7e][%-_]" Background="LightGreen"/>
-            <TextBox Grid.Row="1" Grid.Column="3" Style="{StaticResource PatternRightStyle}" Text="[ -`][X-\\][^\44-\127]" Background="Pink"/>
-            <TextBox Grid.Row="0" Grid.Column="1" Style="{StaticResource PatternTopStyle}" Text="[^\x5b-\x61]" Background="LightGray"/>
-            <TextBox Grid.Row="2" Grid.Column="1" Style="{StaticResource PatternBottomStyle}" Text="[^\40-\131]"/>
+            <Border Grid.Row="1" Grid.Column="0" BorderThickness="1" BorderBrush="Transparent" Margin="5,0">
+                <Grid Background="LightGreen">
+                    <ProgressBar Background="Transparent" Foreground="#44FFFFFF" Minimum="0" Maximum="1" Value="0.75" />
+                    <TextBox Style="{StaticResource PatternTextBoxLeftStyle}" Text="[P-{][^\x5a-\x7e][%-_]" Background="Transparent" BorderThickness="0"/>
+                </Grid>
+            </Border>
+            <TextBox Grid.Row="1" Grid.Column="3" Style="{StaticResource PatternTextBoxRightStyle}" Text="[ -`][X-\\][^\44-\127]" Background="Pink" Margin="5,0"/>
+            <TextBox Grid.Row="0" Grid.Column="1" Style="{StaticResource PatternTextBoxTopStyle}" Text="[^\x5b-\x61]" Background="LightGray" Margin="0,5">
+                <TextBox.LayoutTransform>
+                    <RotateTransform Angle="90"/>
+                </TextBox.LayoutTransform>
+            </TextBox>
+            <TextBox Grid.Row="2" Grid.Column="1" Style="{StaticResource PatternTextBoxBottomStyle}" Text="[^\40-\131]" Margin="0,5">
+                <TextBox.LayoutTransform>
+                    <RotateTransform Angle="90"/>
+                </TextBox.LayoutTransform>
+            </TextBox>
             <TextBox Grid.Row="1" Grid.Column="1" Style="{StaticResource CellStyle}" Text="MWA\s" FontSize="12" Background="LightPink"/>
         </Grid>
         <Rectangle x:Name="Blink" Fill="#FFFFFFFF" Width="10" Height="10" Grid.Row="1" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="10"/>

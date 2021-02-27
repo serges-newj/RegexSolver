@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -37,16 +38,22 @@ namespace RegexSolver
             NoRegex,
             Disabled,
             Processing,
+            NoValue,
             NoMatch,
             Partial,
             Full
         }
+
+        const int MIN_COMBINATION_TO_SHOW_PROGRESS = 1000;
+        const double MAX_PARTITION_TO_MOVE_PROGRESS = 0.0005;
 
         internal static class Properties
         {
             public const string Background = "Background";
             public const string Foreground = "Foreground";
             public const string BorderBrush = "BorderBrush";
+            public const string InProcessing = "InProcessing";
+            public const string Progress = "Progress";
         }
 
         public RegexPuzzleRectPatternVM(RegexPuzzleRectVM viewModel, int row, int col) : base(viewModel, row, col)
@@ -113,8 +120,23 @@ namespace RegexSolver
             }
         }
 
+        double progress = 1;
+        public double Progress {
+            get => progress;
+        }
+
+        public bool InProcessing { get { return progress < 1; } }
+        public void UITimer_Tick(object sender, EventArgs e)
+        {
+            OnPropertyChanged(Properties.Progress);
+        }
+
         private async void updateBackground(bool bAsync = true)
         {
+#if DEBUG
+            if (!bAsync)
+                Debug.WriteLine("updateBackground, {0} ({1,2}:{2,2}) lastResult = {3}", bAsync ? "async" : "sync", row, col, Enum.GetName(typeof(RegexMatchResult), lastRegexMatchResult));
+#endif
             if (isDisabled)
                 lastRegexMatchResult = RegexMatchResult.Disabled;
             else if (string.IsNullOrEmpty(Text))
@@ -124,16 +146,29 @@ namespace RegexSolver
                 if (bAsync)
                 {
                     int processingId = getNewProcessingId();
+                    progress = 0;
+
                     if (lastRegexMatchResult != RegexMatchResult.Processing)
                     {
                         lastRegexMatchResult = RegexMatchResult.Processing;
                         OnPropertyChanged(Properties.Background);
+                        OnPropertyChanged(Properties.InProcessing);
                     }
+
+                    EventHandler on_ui_timer = (sender, e) =>
+                    {
+                        OnPropertyChanged(Properties.Progress);
+                    };
+                    puzzleVM.ActivateTimer(on_ui_timer);
 
                     RegexMatchResult matchResult = await checkRegexMatchAsync(() => processingId != getLastProcessingId());
 
+                    puzzleVM.DeactivateTimer(on_ui_timer);
                     if (!IsDisabled && (processingId == getLastProcessingId()))
+                    {
                         lastRegexMatchResult = matchResult;
+                        progress = 1;
+                    }
                 }
                 else
                     lastRegexMatchResult = checkRegexMatch(() => false);
@@ -141,6 +176,7 @@ namespace RegexSolver
             if (bAsync)
             {
                 OnPropertyChanged(Properties.Background);
+                OnPropertyChanged(Properties.InProcessing);
             }
         }
 
@@ -150,6 +186,7 @@ namespace RegexSolver
             get
             {
                 if (lastRegexMatchResult == RegexMatchResult.Unknown)
+                    // По идее, теперь такого быть не должно, но вдруг...
                     updateBackground(false);
                 switch (lastRegexMatchResult)
                 {
@@ -233,6 +270,7 @@ namespace RegexSolver
             string[,] cells = null;
             bool empty = false;
             bool multi = false;
+            long combination_cnt = 1;
             if (col == 0 || col == model.Cols + 1)
             {
                 cells = new string[model.Cols, 2];
@@ -242,6 +280,7 @@ namespace RegexSolver
                     cells[i, 1] = String.Empty;
                     empty = empty || (String.IsNullOrEmpty(cells[i, 0]));
                     multi = multi || cells[i, 0].Length > 1;
+                    if (combination_cnt < MIN_COMBINATION_TO_SHOW_PROGRESS) combination_cnt *= cells[i, 0].Length;
                 }
             }
             else if (row == 0 || row == model.Rows + 1)
@@ -253,11 +292,15 @@ namespace RegexSolver
                     cells[i, 1] = String.Empty;
                     empty = empty || (String.IsNullOrEmpty(cells[i, 0]));
                     multi = multi || cells[i, 0].Length > 1;
+                    if (combination_cnt < MIN_COMBINATION_TO_SHOW_PROGRESS) combination_cnt *= cells[i, 0].Length;
                 }
             }
-            if (!empty)
+            if (empty)
+                res = RegexMatchResult.NoValue;
+            else
             {
-                if (findMatch(cells, 0, "", r, stop) && !stop())
+                progress = 0;
+                if (findMatch(cells, 0, "", r, stop, combination_cnt < MIN_COMBINATION_TO_SHOW_PROGRESS ? 0 : 1) && !stop())
                 {
                     if (!multi)
                         res = RegexMatchResult.Full;
@@ -287,7 +330,7 @@ namespace RegexSolver
             return res;
         }
 
-        private bool findMatch(string[,] cells, int idx, string line, Regex r, breakCondition stop)
+        private bool findMatch(string[,] cells, int idx, string line, Regex r, breakCondition stop, double partition)
         {
             if (idx > cells.GetUpperBound(0))
             {
@@ -299,15 +342,24 @@ namespace RegexSolver
             {
                 bool match = false;
                 string chars = cells[idx, 0];
+                int len = chars.Length;
+                double inner_partition = partition / len;
+                double start_progress = progress;
+                int pos = 0;
                 foreach (char c in chars)
                 {
-                    if (stop())
-                        return false;
-                    if (findMatch(cells, idx + 1, line + c, r, stop))
+                    if (findMatch(cells, idx + 1, line + c, r, stop, inner_partition))
                     {
                         match = true;
                         if (!cells[idx, 1].Contains(c))
                             cells[idx, 1] = cells[idx, 1] + c;
+                    }
+                    if (stop())
+                        return false;
+                    if (partition > MAX_PARTITION_TO_MOVE_PROGRESS)
+                    {
+                        pos++;
+                        progress = start_progress + partition * pos / len;
                     }
                 }
                 return match;
