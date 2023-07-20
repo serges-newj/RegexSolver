@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -44,6 +45,12 @@ namespace RegexSolver
             Full
         }
 
+        internal struct RegexMatchProgress
+        {
+            public RegexMatchResult result;
+            public double ratio;
+        }
+
         const int MIN_COMBINATION_TO_SHOW_PROGRESS = 1000;
         const double MAX_PARTITION_TO_MOVE_PROGRESS = 0.0005;
 
@@ -54,6 +61,35 @@ namespace RegexSolver
             public const string BorderBrush = "BorderBrush";
             public const string InProcessing = "InProcessing";
             public const string Progress = "Progress";
+        }
+
+        internal class ProgressReporter
+        {
+            IProgress<RegexMatchProgress> progress;
+            int idxForProgressChange;
+            double minProgressChange;
+            double currentProgress;
+
+            public ProgressReporter(string[,] cells, IProgress<RegexMatchProgress> progress)
+            {
+                this.progress = progress;
+
+                idxForProgressChange = 0;
+                minProgressChange = 1;
+                currentProgress = 0;
+                for (int idx = 0; idx <= cells.GetUpperBound(0) && (minProgressChange / cells[idx, 0].Length > MAX_PARTITION_TO_MOVE_PROGRESS); idx++)
+                {
+                    minProgressChange /= cells[idx, 0].Length;
+                    idxForProgressChange = idx;
+                }
+            }
+
+            public void SetProgress(int idx)
+            {
+                if (idx == idxForProgressChange)
+                    currentProgress += minProgressChange;
+                progress.Report( new RegexMatchProgress { result = RegexMatchResult.Processing, ratio = currentProgress } );
+            }
         }
 
         public RegexPuzzleRectPatternVM(RegexPuzzleRectVM viewModel, int row, int col) : base(viewModel, row, col)
@@ -120,63 +156,45 @@ namespace RegexSolver
             }
         }
 
-        double progress = 1;
+        double old_progress = 1;
         public double Progress {
-            get => progress;
+            get => old_progress;
         }
 
-        public bool InProcessing { get { return progress < 1; } }
+        public bool InProcessing { get { return old_progress < 1; } }
         public void UITimer_Tick(object sender, EventArgs e)
         {
             OnPropertyChanged(Properties.Progress);
         }
 
-        private async void updateBackground(bool bAsync = true)
+        private CancellationTokenSource cancellationTokenSource;
+        private void updateMatchResult(IProgress<RegexMatchProgress> progress)
         {
-#if DEBUG
-            if (!bAsync)
-                Debug.WriteLine("updateBackground, {0} ({1,2}:{2,2}) lastResult = {3}", bAsync ? "async" : "sync", row, col, Enum.GetName(typeof(RegexMatchResult), lastRegexMatchResult));
-#endif
             if (isDisabled)
-                lastRegexMatchResult = RegexMatchResult.Disabled;
+                progress.Report(new RegexMatchProgress() { result = RegexMatchResult.Disabled, progress = 1 });
             else if (string.IsNullOrEmpty(Text))
-                lastRegexMatchResult = RegexMatchResult.NoRegex;
+                progress.Report(new RegexMatchProgress() { result = RegexMatchResult.NoRegex, progress = 1 });
             else
             {
-                if (bAsync)
+                if (cancellationTokenSource != null)
                 {
-                    int processingId = getNewProcessingId();
-                    progress = 0;
-
-                    if (lastRegexMatchResult != RegexMatchResult.Processing)
-                    {
-                        lastRegexMatchResult = RegexMatchResult.Processing;
-                        OnPropertyChanged(Properties.Background);
-                        OnPropertyChanged(Properties.InProcessing);
-                    }
-
-                    EventHandler on_ui_timer = (sender, e) =>
-                    {
-                        OnPropertyChanged(Properties.Progress);
-                    };
-                    puzzleVM.ActivateTimer(on_ui_timer);
-
-                    RegexMatchResult matchResult = await checkRegexMatchAsync(() => processingId != getLastProcessingId());
-
-                    puzzleVM.DeactivateTimer(on_ui_timer);
-                    if (!IsDisabled && (processingId == getLastProcessingId()))
-                    {
-                        lastRegexMatchResult = matchResult;
-                        progress = 1;
-                    }
+                    // cancel previous run
+                    cancellationTokenSource.Cancel();
+                    cancellationTokenSource.Dispose();
                 }
-                else
-                    lastRegexMatchResult = checkRegexMatch(() => false);
+
+                progress.Report(new RegexMatchProgress() { result = RegexMatchResult.Processing, progress = 0 });
+
+                RegexMatchResult matchResult = await checkRegexMatch(processingId);
+
+                if (!IsDisabled && (processingId == getLastProcessingId()))
+                {
+                    lastRegexMatchResult = matchResult;
+                }
             }
             if (bAsync)
             {
                 OnPropertyChanged(Properties.Background);
-                OnPropertyChanged(Properties.InProcessing);
             }
         }
 
@@ -186,8 +204,7 @@ namespace RegexSolver
             get
             {
                 if (lastRegexMatchResult == RegexMatchResult.Unknown)
-                    // По идее, теперь такого быть не должно, но вдруг...
-                    updateBackground(false);
+                    updateBackground();
                 switch (lastRegexMatchResult)
                 {
                     case RegexMatchResult.Disabled:
@@ -255,12 +272,12 @@ namespace RegexSolver
         }
 
         private delegate bool breakCondition();
-        private async Task<RegexMatchResult> checkRegexMatchAsync(breakCondition stop)
-        {
-            return await Task.Run(() => checkRegexMatch(stop));
-        }
+        //private async Task<RegexMatchResult> checkRegexMatchAsync(breakCondition stop)
+        //{
+        //    return await Task.Run(() => checkRegexMatch(stop));
+        //}
 
-        private RegexMatchResult checkRegexMatch(breakCondition stop)
+        private async RegexMatchResult checkRegexMatch(int asyncProcessingId)
         {
             Regex r = pattern?.Regex;
             if (r == null)
@@ -268,19 +285,23 @@ namespace RegexSolver
 
             RegexMatchResult res = RegexMatchResult.Unknown;
             string[,] cells = null;
-            bool empty = false;
-            bool multi = false;
             long combination_cnt = 1;
             if (col == 0 || col == model.Cols + 1)
             {
                 cells = new string[model.Cols, 2];
                 for (int i = 0; i < model.Cols; i++)
                 {
-                    cells[i, 0] = model.Cells[row - 1, i];
-                    cells[i, 1] = String.Empty;
-                    empty = empty || (String.IsNullOrEmpty(cells[i, 0]));
-                    multi = multi || cells[i, 0].Length > 1;
-                    if (combination_cnt < MIN_COMBINATION_TO_SHOW_PROGRESS) combination_cnt *= cells[i, 0].Length;
+                    if (String.IsNullOrEmpty(model.Cells[row - 1, i]))
+                    {
+                        combination_cnt = 0;
+                        break;
+                    }
+                    else
+                    {
+                        cells[i, 0] = model.Cells[row - 1, i];
+                        cells[i, 1] = String.Empty;
+                        if (combination_cnt < MIN_COMBINATION_TO_SHOW_PROGRESS) combination_cnt *= cells[i, 0].Length;
+                    }
                 }
             }
             else if (row == 0 || row == model.Rows + 1)
@@ -288,21 +309,54 @@ namespace RegexSolver
                 cells = new string[model.Rows, 2];
                 for (int i = 0; i < model.Rows; i++)
                 {
-                    cells[i, 0] = model.Cells[i, col - 1];
-                    cells[i, 1] = String.Empty;
-                    empty = empty || (String.IsNullOrEmpty(cells[i, 0]));
-                    multi = multi || cells[i, 0].Length > 1;
-                    if (combination_cnt < MIN_COMBINATION_TO_SHOW_PROGRESS) combination_cnt *= cells[i, 0].Length;
+                    if (String.IsNullOrEmpty(model.Cells[i, col - 1]))
+                    {
+                        combination_cnt = 0;
+                        break;
+                    }
+                    else
+                    {
+                        cells[i, 0] = model.Cells[i, col - 1];
+                        cells[i, 1] = String.Empty;
+                        if (combination_cnt < MIN_COMBINATION_TO_SHOW_PROGRESS) combination_cnt *= cells[i, 0].Length;
+                    }
                 }
             }
-            if (empty)
+
+            if (combination_cnt == 0)
                 res = RegexMatchResult.NoValue;
             else
             {
-                progress = 0;
-                if (findMatch(cells, 0, "", r, stop, combination_cnt < MIN_COMBINATION_TO_SHOW_PROGRESS ? 0 : 1) && !stop())
+                bool match = false;
+                bool ignore = false;
+                if (asyncProcessingId == 0 || combination_cnt < MIN_COMBINATION_TO_SHOW_PROGRESS)
                 {
-                    if (!multi)
+                    match = findMatch(cells, 0, "", r, () => false, 0);
+                }
+                else
+                {   // асинхронная проверка
+                    OnPropertyChanged(Properties.InProcessing);
+                    // устанавливаем индикатор прогресса в 0 и запускаем его периодическое обновление
+                    old_progress = 0;
+                    EventHandler on_ui_timer = (sender, e) => OnPropertyChanged(Properties.Progress);
+                    puzzleVM.ActivateTimer(on_ui_timer);
+
+                    match = await findMatchAsync(cells, 0, "", r, () => asyncProcessingId != getLastProcessingId(), 1);
+
+                    puzzleVM.DeactivateTimer(on_ui_timer);
+                    if (asyncProcessingId != getLastProcessingId())
+                        ignore = true;
+                    else if (!IsDisabled)
+                        old_progress = 1;
+                }
+
+                if (ignore)
+                    res = RegexMatchResult.Unknown;
+                else if (!match)
+                    res = RegexMatchResult.NoMatch;
+                else
+                {
+                    if (combination_cnt == 1)
                         res = RegexMatchResult.Full;
                     else
                         res = RegexMatchResult.Partial;
@@ -318,19 +372,30 @@ namespace RegexSolver
                             puzzleVM.SetCellWrongChars(i + 1, col, Side, wrongChars);
                     }
                 }
-                else
-                {
-                    if (stop())
-                        res = RegexMatchResult.Unknown;
-                    else
-                        res = RegexMatchResult.NoMatch;
-                }
             }
 
             return res;
         }
 
-        private bool findMatch(string[,] cells, int idx, string line, Regex r, breakCondition stop, double partition)
+        private async Task<bool> findMatchAsync(string[,] cells, int idx, string line, Regex r, breakCondition stop, double partition)
+        {
+            return await Task.Run(() => findMatch(cells, idx, line, r, stop, partition));
+        }
+
+        /// <summary>
+        /// Recursive search of match
+        /// </summary>
+        /// <param name="cells">Two-dimensional array:
+        ///   IN:  cells[idx, 0] - characters to be tested on idx position
+        ///   OUT: cells[idx, 1] - characters that could appear on idx position
+        /// </param>
+        /// <param name="idx">Current character position (also depth of recursion)</param>
+        /// <param name="line">Current line being constructed for testing</param>
+        /// <param name="r">Regex</param>
+        /// <param name="progressReporter">Internal progress reporter class</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns></returns>
+        private bool findMatchRecursive(string[,] cells, int idx, string line, Regex r, ProgressReporter progressReporter, CancellationToken cancellationToken)
         {
             if (idx > cells.GetUpperBound(0))
             {
@@ -343,24 +408,17 @@ namespace RegexSolver
                 bool match = false;
                 string chars = cells[idx, 0];
                 int len = chars.Length;
-                double inner_partition = partition / len;
-                double start_progress = progress;
-                int pos = 0;
                 foreach (char c in chars)
                 {
-                    if (findMatch(cells, idx + 1, line + c, r, stop, inner_partition))
+                    if (findMatchRecursive(cells, idx + 1, line + c, r, progressReporter, cancellationToken))
                     {
                         match = true;
                         if (!cells[idx, 1].Contains(c))
                             cells[idx, 1] = cells[idx, 1] + c;
                     }
-                    if (stop())
+                    if (cancellationToken.IsCancellationRequested)
                         return false;
-                    if (partition > MAX_PARTITION_TO_MOVE_PROGRESS)
-                    {
-                        pos++;
-                        progress = start_progress + partition * pos / len;
-                    }
+                    progressReporter.SetProgress(idx);
                 }
                 return match;
             }
@@ -465,8 +523,12 @@ namespace RegexSolver
                     if (text[pos] == '-' && pos > 0 && text[pos - 1] != '\\' && pos + 1 < text.Length)
                     {
                         char c = (char)((int)text[pos - 1] + 1);
-                        while (c < text[pos + 1] && !(c >= 'a' && c <= 'z'))
-                            sb.Append(c++);
+                        while (c < text[pos + 1])
+                        {
+                            if (!(c >= 'a' && c <= 'z'))
+                                sb.Append(c);
+                            c++;
+                        }
                         pos++;
                     }
                     sb.Append(text[pos]);
