@@ -173,7 +173,7 @@ namespace RegexSolver
             if (tb.DataContext is RegexPuzzleRectCellVM)
             {
                 RegexPuzzleRectCellVM cellVM = tb.DataContext as RegexPuzzleRectCellVM;
-                cellVM.RemoveRepeatedChars();
+                cellVM.EnhanceInput();
             }
         }
 

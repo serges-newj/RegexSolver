@@ -387,10 +387,11 @@ namespace RegexSolver
             OnPropertyChanged(Properties.Background);
         }
 
-        public void RemoveRepeatedChars()
+        public void EnhanceInput()
         {
-            if (string.Concat(text.Distinct()).Length < text.Length)
-                VisibleText = string.Concat(text.Distinct());
+            var enh = string.Concat(text.ToUpper().Distinct());
+            if (enh != text)
+                VisibleText = enh;
         }
 
         public void RemoveWrongChars()
@@ -405,7 +406,8 @@ namespace RegexSolver
                 string text = Clipboard.GetText(TextDataFormat.Text);
                 Regex regex = new Regex(@"\\U([0-9A-F]{4})", RegexOptions.IgnoreCase);
                 text = regex.Replace(text, match => ((char)int.Parse(match.Groups[1].Value, NumberStyles.HexNumber)).ToString());
-                text = text.Replace("\\d", "0123456789");
+                text = text.Replace("\\w", "A-Z_");
+                text = text.Replace("\\d", "0-9");
                 int pos = 0;
                 StringBuilder sb = new StringBuilder();
                 while (pos < text.Length)
